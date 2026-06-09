@@ -1,14 +1,17 @@
 import { db } from "@/db";
-import { hoardings } from "@/db/schema";
-import { Plus, Search, ExternalLink } from "lucide-react";
+import { hoardings, agencies } from "@/db/schema";
+import { Plus, Search, ExternalLink, Building2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatCurrency } from "@/lib/utils";
-import { EditHoardingButton, DeleteHoardingButton, CreateHoardingButton } from "@/components/admin/HoardingActions";
+import { EditHoardingButton, DeleteHoardingButton, CreateHoardingButton, MoveHoardingButton } from "@/components/admin/HoardingActions";
 import { desc } from "drizzle-orm";
 
 export default async function AdminHoardingsPage() {
-	const allHoardings = await db.select().from(hoardings).orderBy(desc(hoardings.createdAt));
+	const [allHoardings, allAgencies] = await Promise.all([
+		db.select().from(hoardings).orderBy(desc(hoardings.createdAt)),
+		db.select().from(agencies).orderBy(desc(agencies.name))
+	]);
 
 	return (
 		<div className="space-y-8">
@@ -38,6 +41,7 @@ export default async function AdminHoardingsPage() {
 							<tr className="bg-[#f7f7f7]">
 								<th className="px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest text-[#717171]">Display</th>
 								<th className="px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest text-[#717171]">Details</th>
+								<th className="px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest text-[#717171]">Agency</th>
 								<th className="px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest text-[#717171]">Pricing</th>
 								<th className="px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest text-[#717171]">Status</th>
 								<th className="px-6 py-3.5 text-[10px] font-bold uppercase tracking-widest text-[#717171] text-right">Actions</th>
@@ -56,6 +60,13 @@ export default async function AdminHoardingsPage() {
 											<span className="font-semibold text-[#222222] line-clamp-1">{hoarding.title}</span>
 											<span className="text-xs text-[#717171] line-clamp-1 mt-0.5">{hoarding.location}</span>
 										</div>
+									</td>
+									<td className="px-6 py-4">
+										<MoveHoardingButton 
+											hoardingId={hoarding.id} 
+											currentAgencyId={hoarding.agencyId} 
+											agencies={allAgencies} 
+										/>
 									</td>
 									<td className="px-6 py-4">
 										<span className="font-bold text-[#222222]">{formatCurrency(hoarding.price)}</span>
